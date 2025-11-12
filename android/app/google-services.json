@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "795881171743",
+    "project_id": "iub-social-media-app",
+    "storage_bucket": "iub-social-media-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:795881171743:android:4b443635035c20a6f35e2a",
+        "android_client_info": {
+          "package_name": "com.example.iub_social"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHr7Vq3BDXdiQ6Owm9H3cLednQMq3qHTk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
