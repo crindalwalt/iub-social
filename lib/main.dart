@@ -1,9 +1,13 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:iub_social/firebase_options.dart';
+import 'package:iub_social/providers/post_provider.dart';
+import 'package:provider/provider.dart';
 import 'utils/app_colors.dart';
 import 'views/common/main_navigation.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Set system UI overlay style
@@ -15,7 +19,7 @@ void main() {
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
-  
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const IUBSocialApp());
 }
 
@@ -24,40 +28,45 @@ class IUBSocialApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'IUB Social',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: AppColors.primaryNavy,
-        scaffoldBackgroundColor: AppColors.offWhite,
-        fontFamily: 'Roboto',
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primaryNavy,
-          primary: AppColors.primaryNavy,
-          secondary: AppColors.accentNavy,
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: AppColors.primaryNavy,
-          elevation: 0,
-          iconTheme: IconThemeData(color: AppColors.pureWhite),
-          titleTextStyle: TextStyle(
-            color: AppColors.pureWhite,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => PostProvider())
+      ],
+      child: MaterialApp(
+        title: 'IUB Social',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primaryColor: AppColors.primaryNavy,
+          scaffoldBackgroundColor: AppColors.offWhite,
+          fontFamily: 'Roboto',
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: AppColors.primaryNavy,
+            primary: AppColors.primaryNavy,
+            secondary: AppColors.accentNavy,
           ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.accentNavy,
-            foregroundColor: AppColors.pureWhite,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: AppColors.primaryNavy,
             elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+            iconTheme: IconThemeData(color: AppColors.pureWhite),
+            titleTextStyle: TextStyle(
+              color: AppColors.pureWhite,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.accentNavy,
+              foregroundColor: AppColors.pureWhite,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           ),
         ),
+        home: const MainNavigation(),
       ),
-      home: const MainNavigation(),
     );
   }
 }

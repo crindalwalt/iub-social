@@ -2,6 +2,9 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:iub_social/models/post.dart';
+import 'package:iub_social/providers/post_provider.dart';
+import 'package:provider/provider.dart';
 import '../../utils/app_colors.dart';
 import '../common/custom_app_bar.dart';
 
@@ -32,10 +35,19 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               onPressed: () {
                 // Post functionality
 
-                if(_formKey.currentState!.validate()){
+                if (_formKey.currentState!.validate()) {
                   // proceed to post
                   final caption = _captionController.text;
                   print("Posting: $caption");
+
+                  final postProvier = Provider.of<PostProvider>(context,listen: false);
+                  final post = Post(
+                    title: caption,
+                    content: selectedFile!,
+                    createdAt: DateTime.now(),
+                  );
+                  postProvier.uploadPost(post);
+                  // print(pickingFiles.files.first)
                 }
               },
               style: TextButton.styleFrom(
@@ -167,8 +179,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   children: [
                     TextFormField(
                       controller: _captionController,
-                      validator: (value){
-                        if(value == null || value.isEmpty){
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
                           return "Caption cannot be empty";
                         }
                         return null;
@@ -238,17 +250,20 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                             .pickFiles();
                         print("picking image ... ");
 
-                        if(pickingFiles != null){
-                          File pickedImage = File(pickingFiles.files.single.path!);
+                        if (pickingFiles != null) {
+                          File pickedImage = File(
+                            pickingFiles.files.single.path!,
+                          );
                           setState(() {
                             _hasSelectedImage = true;
                           });
                           // proceed
                           selectedFile = pickedImage;
                           print("file picked");
-                          // print(pickingFiles.files.first)
-                        }else{
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("no media selected")));
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("no media selected")),
+                          );
                         }
                       },
                       child: Container(
@@ -261,13 +276,15 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                             color: AppColors.mediumGray.withOpacity(0.3),
                           ),
                         ),
-                        child: selectedFile != null ? Image.file(selectedFile!) : Center(
-                          child: Icon(
-                            Icons.face,
-                            size: 80,
-                            color: AppColors.mediumGray,
-                          ),
-                        ),
+                        child: selectedFile != null
+                            ? Image.file(selectedFile!)
+                            : Center(
+                                child: Icon(
+                                  Icons.face,
+                                  size: 80,
+                                  color: AppColors.mediumGray,
+                                ),
+                              ),
                       ),
                     ),
                   ],
