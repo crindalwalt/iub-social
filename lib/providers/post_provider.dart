@@ -26,10 +26,14 @@ class PostProvider extends ChangeNotifier {
 
   void uploadPost(Post post) async {
     String postLink = await uploadFileToStorage(post);
-
-    final uploadingPost = await _database.collection("posts").add({
+    Map<String, dynamic> postData = {
       "post": post.title,
       "imageUrl": postLink,
-    });
+      "timestamp": FieldValue.serverTimestamp(),
+      "like" : 0,
+      "comment" : 0,
+      "share" : 0,
+    };
+    final uploadingPost = await _database.collection("posts").add(postData);
   }
 }

@@ -1,19 +1,140 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/authentication_provider.dart';
 import '../../../utils/app_colors.dart';
+import '../../common/main_navigation.dart';
+import 'login.dart';
 
 class EmailVerificationScreen extends StatefulWidget {
-  const EmailVerificationScreen({super.key});
+  final String email;
+
+  const EmailVerificationScreen({super.key, required this.email});
 
   @override
-  State<EmailVerificationScreen> createState() => _EmailVerificationScreenState();
+  State<EmailVerificationScreen> createState() =>
+      _EmailVerificationScreenState();
 }
 
 class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
-  final List<TextEditingController> _codeControllers = List.generate(
-    6,
-    (index) => TextEditingController(),
-  );
-  final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
+  Timer? _timer;
+  bool _canResend = true;
+  int _resendCountdown = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Send verification email when screen opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _sendVerificationEmail();
+    });
+    // Start periodic check for email verification
+    _startVerificationCheck();
+  }
+
+  void _startVerificationCheck() {
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      final authProvider = Provider.of<AuthenticationProvider>(
+        context,
+        listen: false,
+      );
+      final isVerified = await authProvider.checkEmailVerified();
+      if (isVerified && mounted) {
+        timer.cancel();
+        _showSnackBar('Email verified successfully!');
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const MainNavigation()),
+        );
+      }
+    });
+  }
+
+  Future<void> _sendVerificationEmail() async {
+    if (!_canResend) return;
+
+    final authProvider = Provider.of<AuthenticationProvider>(
+      context,
+      listen: false,
+    );
+    final success = await authProvider.sendEmailVerification();
+
+    if (success) {
+      _showSnackBar('Verification email sent!');
+      _startResendCountdown();
+    } else if (authProvider.errorMessage != null) {
+      _showSnackBar(authProvider.errorMessage!, isError: true);
+    }
+  }
+
+  void _startResendCountdown() {
+    setState(() {
+      _canResend = false;
+      _resendCountdown = 60;
+    });
+
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_resendCountdown > 0) {
+        setState(() {
+          _resendCountdown--;
+        });
+      } else {
+        timer.cancel();
+        setState(() {
+          _canResend = true;
+        });
+      }
+    });
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? AppColors.dangerRed : AppColors.successGreen,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  Future<void> _handleCheckVerification() async {
+    final authProvider = Provider.of<AuthenticationProvider>(
+      context,
+      listen: false,
+    );
+    final isVerified = await authProvider.checkEmailVerified();
+
+    if (isVerified && mounted) {
+      _showSnackBar('Email verified successfully!');
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const MainNavigation()),
+      );
+    } else {
+      _showSnackBar(
+        'Email not verified yet. Please check your inbox.',
+        isError: true,
+      );
+    }
+  }
+
+  void _handleChangeEmail() async {
+    final authProvider = Provider.of<AuthenticationProvider>(
+      context,
+      listen: false,
+    );
+    await authProvider.signOut();
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +146,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primaryNavy),
           onPressed: () {
-            // Navigate back
+            Navigator.of(context).pop();
           },
         ),
       ),
@@ -73,17 +194,17 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                 // Description
                 RichText(
                   textAlign: TextAlign.center,
-                  text: const TextSpan(
-                    style: TextStyle(
+                  text: TextSpan(
+                    style: const TextStyle(
                       fontSize: 15,
                       color: AppColors.darkGray,
                       height: 1.5,
                     ),
                     children: [
-                      TextSpan(text: 'We sent a verification code to\n'),
+                      const TextSpan(text: 'We sent a verification link to\n'),
                       TextSpan(
-                        text: 'your.email@iub.edu.pk',
-                        style: TextStyle(
+                        text: widget.email,
+                        style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           color: AppColors.primaryNavy,
                         ),
@@ -92,24 +213,37 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 48),
+                const SizedBox(height: 32),
 
-                // Verification Code Input
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(6, (index) {
-                    return _CodeInputField(
-                      controller: _codeControllers[index],
-                      focusNode: _focusNodes[index],
-                      onChanged: (value) {
-                        if (value.isNotEmpty && index < 5) {
-                          _focusNodes[index + 1].requestFocus();
-                        } else if (value.isEmpty && index > 0) {
-                          _focusNodes[index - 1].requestFocus();
-                        }
-                      },
-                    );
-                  }),
+                // Instructions
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.offWhite,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.lightGray),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildStep(
+                        number: '1',
+                        text: 'Open your email inbox',
+                        icon: Icons.inbox_outlined,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildStep(
+                        number: '2',
+                        text: 'Click the verification link',
+                        icon: Icons.link,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildStep(
+                        number: '3',
+                        text: 'Come back here and continue',
+                        icon: Icons.check_circle_outline,
+                      ),
+                    ],
+                  ),
                 ),
 
                 const SizedBox(height: 32),
@@ -119,64 +253,80 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      "Didn't receive the code? ",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.darkGray,
-                      ),
+                      "Didn't receive the email? ",
+                      style: TextStyle(fontSize: 14, color: AppColors.darkGray),
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: _canResend ? _sendVerificationEmail : null,
                       style: TextButton.styleFrom(
                         padding: EdgeInsets.zero,
                         minimumSize: const Size(0, 0),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      child: const Text(
-                        'Resend',
+                      child: Text(
+                        _canResend
+                            ? 'Resend'
+                            : 'Resend in ${_resendCountdown}s',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.accentNavy,
+                          color: _canResend
+                              ? AppColors.accentNavy
+                              : AppColors.mediumGray,
                         ),
                       ),
                     ),
                   ],
                 ),
 
-                const SizedBox(height: 48),
+                const SizedBox(height: 32),
 
                 // Verify Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accentNavy,
-                      foregroundColor: AppColors.pureWhite,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                Consumer<AuthenticationProvider>(
+                  builder: (context, authProvider, child) {
+                    return SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: authProvider.isLoading
+                            ? null
+                            : _handleCheckVerification,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.accentNavy,
+                          foregroundColor: AppColors.pureWhite,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: authProvider.isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: AppColors.pureWhite,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : const Text(
+                                'I\'ve Verified My Email',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                       ),
-                    ),
-                    child: const Text(
-                      'Verify Email',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 24),
 
                 // Change Email
                 TextButton(
-                  onPressed: () {},
+                  onPressed: _handleChangeEmail,
                   child: const Text(
-                    'Change Email Address',
+                    'Use a Different Email',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -224,64 +374,41 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     );
   }
 
-  @override
-  void dispose() {
-    for (var controller in _codeControllers) {
-      controller.dispose();
-    }
-    for (var focusNode in _focusNodes) {
-      focusNode.dispose();
-    }
-    super.dispose();
-  }
-}
-
-class _CodeInputField extends StatelessWidget {
-  final TextEditingController controller;
-  final FocusNode focusNode;
-  final Function(String) onChanged;
-
-  const _CodeInputField({
-    required this.controller,
-    required this.focusNode,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 50,
-      height: 60,
-      child: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        keyboardType: TextInputType.number,
-        textAlign: TextAlign.center,
-        maxLength: 1,
-        style: const TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w700,
-          color: AppColors.primaryNavy,
-        ),
-        decoration: InputDecoration(
-          counterText: '',
-          filled: true,
-          fillColor: AppColors.offWhite,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+  Widget _buildStep({
+    required String number,
+    required String text,
+    required IconData icon,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: AppColors.accentNavy,
+            borderRadius: BorderRadius.circular(8),
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.lightGray, width: 1.5),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.accentNavy, width: 2),
+          child: Center(
+            child: Text(
+              number,
+              style: const TextStyle(
+                color: AppColors.pureWhite,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
           ),
         ),
-        onChanged: onChanged,
-      ),
+        const SizedBox(width: 12),
+        Icon(icon, color: AppColors.accentNavy, size: 20),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 14, color: AppColors.primaryNavy),
+          ),
+        ),
+      ],
     );
   }
 }

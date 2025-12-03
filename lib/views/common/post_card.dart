@@ -110,10 +110,9 @@ class PostCard extends StatelessWidget {
               width: double.infinity,
               height: 250,
               color: AppColors.lightGray,
-              child: Icon(
-                Icons.image,
-                size: 80,
-                color: AppColors.mediumGray,
+              child: Image.network(
+                postImage!,
+                fit: BoxFit.cover,
               ),
             ),
           ],

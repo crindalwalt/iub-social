@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:iub_social/providers/authentication_provider.dart';
 import 'package:provider/provider.dart';
+import '../../../providers/authentication_provider.dart';
 import '../../../utils/app_colors.dart';
+import '../../common/main_navigation.dart';
+import 'email_verification.dart';
+import 'login.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -19,19 +22,76 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
-  String _selectedDepartment = 'Computer Science';
 
-  final List<String> _departments = [
-    'Computer Science',
-    'Software Engineering',
-    'Business Administration',
-    'Electrical Engineering',
-    'Civil Engineering',
-    'English Literature',
-    'Psychology',
-    'Medical Sciences',
-  ];
-  bool isLoading = false;
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? AppColors.dangerRed : AppColors.successGreen,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  Future<void> _handleRegister() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (!_agreeToTerms) {
+      _showSnackBar(
+        'Please agree to Terms of Service and Privacy Policy',
+        isError: true,
+      );
+      return;
+    }
+
+    final authProvider = Provider.of<AuthenticationProvider>(
+      context,
+      listen: false,
+    );
+    authProvider.clearError();
+
+    final user = await authProvider.registerWithEmailAndPassword(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
+
+    if (user != null) {
+      // Update display name
+      await authProvider.updateDisplayName(_fullNameController.text.trim());
+
+      // Navigate to email verification
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) =>
+                EmailVerificationScreen(email: user.email ?? ''),
+          ),
+        );
+      }
+    } else if (authProvider.errorMessage != null) {
+      _showSnackBar(authProvider.errorMessage!, isError: true);
+    }
+  }
+
+  Future<void> _handleGoogleSignUp() async {
+    final authProvider = Provider.of<AuthenticationProvider>(
+      context,
+      listen: false,
+    );
+    authProvider.clearError();
+
+    final user = await authProvider.signInWithGoogle();
+
+    if (user != null) {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const MainNavigation()),
+        );
+      }
+    } else if (authProvider.errorMessage != null) {
+      _showSnackBar(authProvider.errorMessage!, isError: true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +103,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primaryNavy),
           onPressed: () {
-            // Navigate back
+            Navigator.of(context).pop();
           },
         ),
       ),
@@ -414,73 +474,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 32),
 
                       // Sign Up Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: _agreeToTerms
-                              ? () async {
-                                  // TODO: submit funciton here
-                                   setState(() {
-                                        isLoading = true;
-                                      });
-                                  if (_formKey.currentState!.validate()) {
-                                    // Process data
-                                    print("=====================");
-                                    print("=====================");
-                                    print("=====================");
-                                    print("registeration values");
-                                    print(_fullNameController.text);
-                                    print(_emailController.text);
-                                    print(_passwordController.text);
-                                    print(_confirmPasswordController.text);
-                                    // collect data
-                                    final String email = _emailController.text
-                                        .trim();
-                                    final String password = _passwordController
-                                        .text
-                                        .trim();
-
-                                    // import provider
-                                    final authProvider =
-                                        Provider.of<AuthenticationProvider>(
-                                          context,
-                                          listen: false,
-                                        );
-                                    final registration = await authProvider
-                                        .registerWithEmailAndPassword(
-                                          email,
-                                          password,
-                                        );
-
-                                    
-                                      setState(() {
-                                        isLoading = false;
-                                      });
-                                      // navigate to email verification
-                                    
-                                  }
-                                }
-                              : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.accentNavy,
-                            foregroundColor: AppColors.pureWhite,
-                            disabledBackgroundColor: AppColors.lightGray,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: isLoading
-                              ? CircularProgressIndicator(year2023: false)
-                              : Text(
-                                  'Create Account',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                      Consumer<AuthenticationProvider>(
+                        builder: (context, authProvider, child) {
+                          return SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed:
+                                  (_agreeToTerms && !authProvider.isLoading)
+                                  ? _handleRegister
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.accentNavy,
+                                foregroundColor: AppColors.pureWhite,
+                                disabledBackgroundColor: AppColors.lightGray,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                        ),
+                              ),
+                              child: authProvider.isLoading
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        color: AppColors.pureWhite,
+                                        strokeWidth: 2.5,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Create Account',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                            ),
+                          );
+                        },
                       ),
 
                       const SizedBox(height: 24),
@@ -520,7 +551,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         width: double.infinity,
                         height: 56,
                         child: OutlinedButton.icon(
-                          onPressed: () {},
+                          onPressed: _handleGoogleSignUp,
                           icon: Image.asset(
                             'assets/icons/google.png',
                             width: 24,
@@ -569,7 +600,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             ),
                             TextButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(
+                                    builder: (context) => const LoginScreen(),
+                                  ),
+                                );
+                              },
                               style: TextButton.styleFrom(
                                 padding: EdgeInsets.zero,
                                 minimumSize: const Size(0, 0),

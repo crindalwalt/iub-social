@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../utils/app_colors.dart';
+import '../auth/login.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -47,7 +48,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 alignment: Alignment.topRight,
                 child: TextButton(
                   onPressed: () {
-                    // Navigate to login
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const LoginScreen(),
+                      ),
+                    );
                   },
                   child: const Text(
                     'Skip',
@@ -103,7 +108,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         curve: Curves.easeInOut,
                       );
                     } else {
-                      // Navigate to login
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                      );
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -115,9 +124,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
                   child: Text(
-                    _currentPage < _pages.length - 1
-                        ? 'Next'
-                        : 'Get Started',
+                    _currentPage < _pages.length - 1 ? 'Next' : 'Get Started',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -179,11 +186,7 @@ class _OnboardingPage extends StatelessWidget {
                   color: AppColors.accentNavy,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  data.icon,
-                  size: 80,
-                  color: AppColors.pureWhite,
-                ),
+                child: Icon(data.icon, size: 80, color: AppColors.pureWhite),
               ),
             ),
           ),

@@ -2,15 +2,17 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iub_social/firebase_options.dart';
+import 'package:iub_social/providers/authentication_provider.dart';
 import 'package:iub_social/providers/post_provider.dart';
 import 'package:provider/provider.dart';
 import 'utils/app_colors.dart';
 import 'views/common/main_navigation.dart';
+import 'views/screens/onboarding/onboarding.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Set system UI overlay style
+
+  // Set system UI overlay styleP
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: AppColors.primaryNavy,
@@ -30,7 +32,8 @@ class IUBSocialApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => PostProvider())
+        ChangeNotifierProvider(create: (_) => AuthenticationProvider()),
+        ChangeNotifierProvider(create: (_) => PostProvider()),
       ],
       child: MaterialApp(
         title: 'IUB Social',
@@ -65,8 +68,27 @@ class IUBSocialApp extends StatelessWidget {
             ),
           ),
         ),
-        home: const MainNavigation(),
+        home: const AuthWrapper(),
       ),
+    );
+  }
+}
+
+/// AuthWrapper handles authentication state and shows appropriate screen
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthenticationProvider>(
+      builder: (context, authProvider, child) {
+        // If user is logged in and email is verified, show main navigation
+        if (authProvider.isAuthenticated && authProvider.isEmailVerified) {
+          return const MainNavigation();
+        }
+        // Otherwise show onboarding/login flow
+        return const OnboardingScreen();
+      },
     );
   }
 }
