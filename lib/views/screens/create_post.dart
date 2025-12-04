@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:iub_social/models/post.dart';
+import 'package:iub_social/providers/authentication_provider.dart';
 import 'package:iub_social/providers/post_provider.dart';
+import 'package:iub_social/views/screens/feed_screen.dart';
 import 'package:provider/provider.dart';
 import '../../utils/app_colors.dart';
 import '../common/custom_app_bar.dart';
@@ -23,6 +25,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   File? selectedFile;
   @override
   Widget build(BuildContext context) {
+    final username = Provider.of<AuthenticationProvider>(context);
+    final name = username.user!.displayName;
     return Scaffold(
       backgroundColor: AppColors.offWhite,
       appBar: CustomAppBar(
@@ -40,15 +44,26 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   final caption = _captionController.text;
                   print("Posting: $caption");
 
-                  final postProvier = Provider.of<PostProvider>(context,listen: false);
+                  final postProvier = Provider.of<PostProvider>(
+                    context,
+                    listen: false,
+                  );
                   final post = Post(
+                    userName: name!,
+                    userAvatar: "AZ",
                     title: caption,
                     content: selectedFile!,
                     createdAt: DateTime.now(),
+                    likes: 0,
+                    comments: 0,
+                    shares: 0,
                   );
                   postProvier.uploadPost(post);
                   // print(pickingFiles.files.first)
                 }
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => FeedScreen()),
+                );
               },
               style: TextButton.styleFrom(
                 backgroundColor: AppColors.accentNavy,
@@ -104,9 +119,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          'Your Name',
+                          name ?? "user",
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
