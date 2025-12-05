@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:iub_social/providers/authentication_provider.dart';
+import 'package:provider/provider.dart';
 import '../../utils/app_colors.dart';
 import '../common/custom_app_bar.dart';
 import '../common/post_card.dart';
@@ -8,6 +10,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final username = Provider.of<AuthenticationProvider>(context);
+    final name = username.user!.displayName;
     return Scaffold(
       backgroundColor: AppColors.offWhite,
       appBar: CustomAppBar(
@@ -92,8 +96,8 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   
                   // Name and Info
-                  const Text(
-                    'Your Name',
+                   Text(
+                    name??"User",
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,

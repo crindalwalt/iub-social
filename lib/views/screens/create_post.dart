@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:iub_social/models/post.dart';
+import 'package:iub_social/providers/authentication_provider.dart';
 import 'package:iub_social/providers/post_provider.dart';
 import 'package:iub_social/providers/authentication_provider.dart';
 import 'package:provider/provider.dart';
@@ -24,6 +25,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   File? selectedFile;
   @override
   Widget build(BuildContext context) {
+    final username = Provider.of<AuthenticationProvider>(context);
+    final name = username.user!.displayName;
     return Scaffold(
       backgroundColor: AppColors.offWhite,
       appBar: CustomAppBar(
@@ -45,6 +48,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   final authProvider = Provider.of<AuthenticationProvider>(context,listen: false);
                   final userId = authProvider.user?.uid ?? null;
                   final post = Post(
+                    userName: name!,
+                    userAvatar: "AZ",
                     title: caption,
                     content: selectedFile!,
                     createdAt: DateTime.now(),
@@ -62,6 +67,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   postProvier.uploadPost(newPost);
                   // print(pickingFiles.files.first)
                 }
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => FeedScreen()),
+                );
               },
               style: TextButton.styleFrom(
                 backgroundColor: AppColors.accentNavy,
@@ -117,9 +125,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          'Your Name',
+                          name ?? "user",
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,

@@ -1,11 +1,16 @@
 import 'dart:io';
 
 class Post {
+  final String userName;
+  final String userAvatar;
   final String title;
   final File content;
   final DateTime createdAt;
+  final int likes;
+  final int comments;
+  final int shares;
 
-  Post({required this.title, required this.content, required this.createdAt});
+  Post({required this.userName,required this.userAvatar,required this.title, required this.content, required this.createdAt,required this.likes,required this.comments,required this.shares});
 }
 
 class DummyPost {
