@@ -7,14 +7,14 @@ class PostProvider extends ChangeNotifier {
   FirebaseStorage _storage = FirebaseStorage.instance;
   FirebaseFirestore _database = FirebaseFirestore.instance;
 
-  Future<String> uploadFileToStorage(Post post) async {
+  Future<String> uploadFileToStorage(CreatePost post) async {
     // create a refrence for new uploads
     final Reference storageRef = _storage.ref().child(
       'posts/${post.title}_${DateTime.now().millisecondsSinceEpoch}',
     );
 
     // upload the file
-    final TaskSnapshot uploadingFile = await storageRef.putFile(post.content);
+    final TaskSnapshot uploadingFile = await storageRef.putFile(post.imageFile);
 
     // get a downloadableLink for storing in the database
     final downloadLink = await uploadingFile.ref.getDownloadURL();
@@ -24,15 +24,16 @@ class PostProvider extends ChangeNotifier {
     return downloadLink;
   }
 
-  void uploadPost(Post post) async {
+  void uploadPost(CreatePost post) async {
     String postLink = await uploadFileToStorage(post);
     Map<String, dynamic> postData = {
-      "post": post.title,
-      "imageUrl": postLink,
-      "timestamp": FieldValue.serverTimestamp(),
-      "like" : 0,
-      "comment" : 0,
-      "share" : 0,
+      "postContent": post.content,
+      "postImage": postLink,
+      "timeCreated": FieldValue.serverTimestamp(),
+      "likes" : 0,
+      "comments" : 0,
+      "shares" : 0,
+      "userId" : post.userId,
     };
     final uploadingPost = await _database.collection("posts").add(postData);
   }

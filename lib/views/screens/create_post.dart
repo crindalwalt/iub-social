@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:iub_social/models/post.dart';
 import 'package:iub_social/providers/post_provider.dart';
+import 'package:iub_social/providers/authentication_provider.dart';
 import 'package:provider/provider.dart';
 import '../../utils/app_colors.dart';
 import '../common/custom_app_bar.dart';
@@ -41,12 +42,24 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   print("Posting: $caption");
 
                   final postProvier = Provider.of<PostProvider>(context,listen: false);
+                  final authProvider = Provider.of<AuthenticationProvider>(context,listen: false);
+                  final userId = authProvider.user?.uid ?? null;
                   final post = Post(
                     title: caption,
                     content: selectedFile!,
                     createdAt: DateTime.now(),
                   );
-                  postProvier.uploadPost(post);
+
+
+
+                  final CreatePost newPost = CreatePost(
+                    content: caption,
+                    imageFile: selectedFile,
+                    userId: userId!,
+                  );
+
+                  
+                  postProvier.uploadPost(newPost);
                   // print(pickingFiles.files.first)
                 }
               },
