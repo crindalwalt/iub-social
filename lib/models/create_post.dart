@@ -1,3 +1,5 @@
+import 'dart:io';
+
 class CreatePost {
   final String content;
   final File? imageFile;
