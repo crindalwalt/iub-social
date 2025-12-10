@@ -15,7 +15,9 @@ class PostProvider extends ChangeNotifier {
     );
 
     // upload the file
-    final TaskSnapshot uploadingFile = await storageRef.putFile(post.imageFile!);
+    final TaskSnapshot uploadingFile = await storageRef.putFile(
+      post.imageFile!,
+    );
 
     // get a downloadableLink for storing in the database
     final downloadLink = await uploadingFile.ref.getDownloadURL();
@@ -31,10 +33,10 @@ class PostProvider extends ChangeNotifier {
       "postContent": post.content,
       "postImage": postLink,
       "timeCreated": FieldValue.serverTimestamp(),
-      "likes" : 0,
-      "comments" : 0,
-      "shares" : 0,
-      "userId" : post.userId,
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "userId": post.userId,
     };
     final uploadingPost = await _database.collection("posts").add(postData);
   }

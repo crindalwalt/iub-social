@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:iub_social/models/post.dart';
 import 'package:iub_social/views/screens/create_post.dart';
@@ -183,31 +184,77 @@ class FeedScreen extends StatelessWidget {
             //         shares: 12,
             //       ),
             //     ],
-            //   ),
-            // ),
             Padding(
-              padding: EdgeInsets.all(16),
-              child: ListView.builder(
-                itemCount: dummyPosts.length,
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                primary: false,
-                itemBuilder: (context, index) {
+              padding: const EdgeInsets.all(16),
+              child: StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection('posts')
+                    .orderBy('timeCreated', descending: true)
+                    .snapshots(),
+                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
 
-                  final post = dummyPosts[index];
-                  return PostCard(
-                    userName: post.userName,
-                    userAvatar: post.userAvatar,
-                    timeAgo: post.timeAgo,
-                    postContent: post.postContent,
-                    likes: post.likes,
-                    comments: post.comments,
-                    shares: post.shares,
-                    postImage: post.postImage,
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No posts available',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    );
+                  }
+
+                  final posts = snapshot.data!.docs;
+
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    primary: false,
+                    itemCount: posts.length,
+                    itemBuilder: (context, index) {
+                      final data = posts[index].data() as Map<String, dynamic>;
+
+                      return PostCard(
+                        userName: data['userName'] ?? 'Unknown User',
+                        userAvatar: data['userAvatar'] ?? 'U',
+                        timeAgo: data['timeAgo'] ?? 'Just now',
+                        postContent: data['postContent'] ?? '',
+                        likes: data['likes'] ?? 0,
+                        comments: data['comments'] ?? 0,
+                        shares: data['shares'] ?? 0,
+                        postImage: data['postImage'],
+                      );
+                    },
                   );
                 },
               ),
             ),
+
+            //dummy data driven posts
+            // Padding(
+            //   padding: EdgeInsets.all(16),
+            //   child: ListView.builder(
+            //     itemCount: dummyPosts.length,
+            //     shrinkWrap: true,
+            //     physics: NeverScrollableScrollPhysics(),
+            //     primary: false,
+            //     itemBuilder: (context, index) {
+
+            //       final post = dummyPosts[index];
+            //       return PostCard(
+            //         userName: post.userName,
+            //         userAvatar: post.userAvatar,
+            //         timeAgo: post.timeAgo,
+            //         postContent: post.postContent,
+            //         likes: post.likes,
+            //         comments: post.comments,
+            //         shares: post.shares,
+            //         postImage: post.postImage,
+            //       );
+            //     },
+            //   ),
+            // ),
           ],
         ),
       ),

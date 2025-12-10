@@ -46,9 +46,16 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   final caption = _captionController.text;
                   print("Posting: $caption");
 
-                  final postProvier = Provider.of<PostProvider>(context,listen: false);
-                  final authProvider = Provider.of<AuthenticationProvider>(context,listen: false);
+                  final postProvier = Provider.of<PostProvider>(
+                    context,
+                    listen: false,
+                  );
+                  final authProvider = Provider.of<AuthenticationProvider>(
+                    context,
+                    listen: false,
+                  );
                   final userId = authProvider.user?.uid ?? null;
+                  final name = username.user!.displayName;
                   // final post = Post(
                   //   userName: name!,
                   //   userAvatar: "AZ",
@@ -57,15 +64,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   //   createdAt: DateTime.now(),
                   // );
 
-
-
                   final CreatePost newPost = CreatePost(
                     content: caption,
                     imageFile: selectedFile,
                     userId: userId!,
                   );
 
-                  
                   postProvier.uploadPost(newPost);
                   // print(pickingFiles.files.first)
                 }
