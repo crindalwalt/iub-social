@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthenticationProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
   bool _googleSignInInitialized = false;
 
   User? _user;
@@ -53,6 +55,7 @@ class AuthenticationProvider extends ChangeNotifier {
 
   // Register with email and password
   Future<User?> registerWithEmailAndPassword(
+    String name,
     String email,
     String password,
   ) async {
@@ -62,6 +65,18 @@ class AuthenticationProvider extends ChangeNotifier {
 
       UserCredential userCredential = await _auth
           .createUserWithEmailAndPassword(email: email, password: password);
+
+      // store users in firestore as well
+      final storeUser = await _db
+          .collection("users")
+          .doc(userCredential.user!.uid)
+          .set({
+            "name": name,
+            "email": email,
+            "email_verified": false,
+            "created_at": FieldValue.serverTimestamp(),
+            
+          });
 
       _user = userCredential.user;
 
@@ -273,5 +288,12 @@ class AuthenticationProvider extends ChangeNotifier {
       default:
         return 'An error occurred. Please try again.';
     }
+  }
+
+  Future<String?> getUserNameFromId(String userId) async {
+    final user = await _db.collection("users").doc(userId).get();
+    final userData = user.data()!;
+    final username = userData["name"];
+    return username;
   }
 }

@@ -321,41 +321,41 @@ class ProfileScreen extends StatelessWidget {
             ),
             
             // Posts
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: const [
-                  PostCard(
-                    userName: 'Your Name',
-                    userAvatar: 'YN',
-                    timeAgo: '1 day ago',
-                    postContent: 'Just finished my final year project presentation! Thanks to everyone who supported me throughout this journey. #IUB #FinalYear 🎓',
-                    postImage: 'project.jpg',
-                    likes: 189,
-                    comments: 34,
-                    shares: 8,
-                  ),
-                  PostCard(
-                    userName: 'Your Name',
-                    userAvatar: 'YN',
-                    timeAgo: '3 days ago',
-                    postContent: 'Had an amazing time at the IUB tech fest! Met some incredible people and learned so much. Can\'t wait for next year! 💻',
-                    likes: 145,
-                    comments: 21,
-                    shares: 5,
-                  ),
-                  PostCard(
-                    userName: 'Your Name',
-                    userAvatar: 'YN',
-                    timeAgo: '1 week ago',
-                    postContent: 'Productive study session at the library today. Sometimes all you need is a good place and determination! 📚✨',
-                    likes: 98,
-                    comments: 12,
-                    shares: 2,
-                  ),
-                ],
-              ),
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 16),
+            //   child: Column(
+            //     children: const [
+            //       PostCard(
+            //         userId: 'Your Name',
+            //         userAvatar: 'YN',
+            //         timeAgo: '1 day ago',
+            //         postContent: 'Just finished my final year project presentation! Thanks to everyone who supported me throughout this journey. #IUB #FinalYear 🎓',
+            //         postImage: 'project.jpg',
+            //         likes: 189,
+            //         comments: 34,
+            //         shares: 8,
+            //       ),
+            //       PostCard(
+            //         userId: 'Your Name',
+            //         userAvatar: 'YN',
+            //         timeAgo: '3 days ago',
+            //         postContent: 'Had an amazing time at the IUB tech fest! Met some incredible people and learned so much. Can\'t wait for next year! 💻',
+            //         likes: 145,
+            //         comments: 21,
+            //         shares: 5,
+            //       ),
+            //       PostCard(
+            //         userId: 'Your Name',
+            //         userAvatar: 'YN',
+            //         timeAgo: '1 week ago',
+            //         postContent: 'Productive study session at the library today. Sometimes all you need is a good place and determination! 📚✨',
+            //         likes: 98,
+            //         comments: 12,
+            //         shares: 2,
+            //       ),
+            //     ],
+            //   ),
+            // ),
             
             const SizedBox(height: 24),
           ],

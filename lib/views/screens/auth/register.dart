@@ -51,6 +51,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     authProvider.clearError();
 
     final user = await authProvider.registerWithEmailAndPassword(
+      _fullNameController.text.trim(),
       _emailController.text.trim(),
       _passwordController.text.trim(),
     );

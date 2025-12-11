@@ -216,9 +216,9 @@ class FeedScreen extends StatelessWidget {
                       final data = posts[index].data() as Map<String, dynamic>;
 
                       return PostCard(
-                        userName: data['userName'] ?? 'Unknown User',
+                        userId: data['userId'] ?? 'Unknown User',
                         userAvatar: data['userAvatar'] ?? 'U',
-                        timeAgo: data['timeAgo'] ?? 'Just now',
+                        timeAgo: data['timeCreated'] ?? 'Just now',
                         postContent: data['postContent'] ?? '',
                         likes: data['likes'] ?? 0,
                         comments: data['comments'] ?? 0,

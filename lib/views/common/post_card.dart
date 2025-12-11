@@ -1,10 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:iub_social/providers/authentication_provider.dart';
+import 'package:provider/provider.dart';
 import '../../utils/app_colors.dart';
 
 class PostCard extends StatelessWidget {
-  final String userName;
+  final String userId;
   final String userAvatar;
-  final String timeAgo;
+  final Timestamp timeAgo;
   final String postContent;
   final String? postImage;
   final int likes;
@@ -13,7 +18,7 @@ class PostCard extends StatelessWidget {
 
   const PostCard({
     super.key,
-    required this.userName,
+    required this.userId,
     required this.userAvatar,
     required this.timeAgo,
     required this.postContent,
@@ -25,6 +30,8 @@ class PostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<AuthenticationProvider>(context, listen: false);
+    final userName = auth.getUserNameFromId(userId);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -59,28 +66,33 @@ class PostCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        userName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                          color: AppColors.primaryNavy,
-                        ),
+                FutureBuilder(
+                  future: userName,
+                  builder: (context, snapshot) {
+                    return Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            snapshot.data == null ? "Anonymous" : snapshot.data!,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              color: AppColors.primaryNavy,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            DateFormat('EEEE, MMM d, yyyy').format(timeAgo.toDate()),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.darkGray,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        timeAgo,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.darkGray,
-                        ),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
                 IconButton(
                   icon: const Icon(Icons.more_vert, color: AppColors.darkGray),
@@ -89,7 +101,7 @@ class PostCard extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Content
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -102,7 +114,7 @@ class PostCard extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Image (if exists)
           if (postImage != null) ...[
             const SizedBox(height: 12),
@@ -110,15 +122,12 @@ class PostCard extends StatelessWidget {
               width: double.infinity,
               height: 250,
               color: AppColors.lightGray,
-              child: Image.network(
-                postImage!,
-                fit: BoxFit.cover,
-              ),
+              child: Image.network(postImage!, fit: BoxFit.cover),
             ),
           ],
-          
+
           const SizedBox(height: 12),
-          
+
           // Stats
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -144,9 +153,9 @@ class PostCard extends StatelessWidget {
               ],
             ),
           ),
-          
+
           const Divider(height: 24, thickness: 1),
-          
+
           // Actions
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
