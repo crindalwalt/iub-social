@@ -46,7 +46,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   final caption = _captionController.text;
                   print("Posting: $caption");
 
-                  final postProvier = Provider.of<PostProvider>(
+                  final postProvier = Provider.of<PostProvider1>(
                     context,
                     listen: false,
                   );

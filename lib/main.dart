@@ -1,9 +1,15 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:iub_social/Ali%20raza/Views/alihome.dart';
+import 'package:iub_social/Ali%20raza/Views/myauthwrapper.dart';
+import 'package:iub_social/Ali%20raza/Views/mylogin.dart';
+import 'package:iub_social/Ali%20raza/provider/myauthentication_provider.dart';
+import 'package:iub_social/Ali%20raza/provider/mypostprovider.dart';
 import 'package:iub_social/firebase_options.dart';
 import 'package:iub_social/providers/authentication_provider.dart';
 import 'package:iub_social/providers/post_provider.dart';
+import 'package:iub_social/views/screens/auth/login.dart';
 import 'package:provider/provider.dart';
 import 'utils/app_colors.dart';
 import 'views/common/main_navigation.dart';
@@ -22,7 +28,8 @@ void main() async {
     ),
   );
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const IUBSocialApp());
+  // runApp( SocialApp());
+  runApp(IUBSocialApp());
 }
 
 class IUBSocialApp extends StatelessWidget {
@@ -33,7 +40,7 @@ class IUBSocialApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthenticationProvider()),
-        ChangeNotifierProvider(create: (_) => PostProvider()),
+        ChangeNotifierProvider(create: (_) => PostProvider1()),
       ],
       child: MaterialApp(
         title: 'IUB Social',
@@ -89,6 +96,23 @@ class AuthWrapper extends StatelessWidget {
         // Otherwise show onboarding/login flow
         return const OnboardingScreen();
       },
+    );
+  }
+}
+
+class SocialApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AuthenticationProvider1()),
+        ChangeNotifierProvider(create: (context) => Mypostprovider()),
+      ],
+      child: MaterialApp(
+        title: "Social App",
+        debugShowCheckedModeBanner: false,
+        home: AuthWrapper1(),
+      ),
     );
   }
 }

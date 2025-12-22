@@ -3,11 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:iub_social/providers/authentication_provider.dart';
+import 'package:iub_social/providers/post_provider.dart';
 import 'package:provider/provider.dart';
 import '../../utils/app_colors.dart';
 
 class PostCard extends StatelessWidget {
   final String userId;
+  final String id;
   final String userAvatar;
   final Timestamp timeAgo;
   final String postContent;
@@ -18,6 +20,7 @@ class PostCard extends StatelessWidget {
 
   const PostCard({
     super.key,
+    required this.id,
     required this.userId,
     required this.userAvatar,
     required this.timeAgo,
@@ -31,6 +34,8 @@ class PostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthenticationProvider>(context, listen: false);
+    final postProvider = Provider.of<PostProvider1>(context);
+    // final isLikedFuture = postProvider.isPostLiked(postId, userId)
     final userName = auth.getUserNameFromId(userId);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -74,7 +79,9 @@ class PostCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            snapshot.data == null ? "Anonymous" : snapshot.data!,
+                            snapshot.data == null
+                                ? "Anonymous"
+                                : snapshot.data!,
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
@@ -83,7 +90,9 @@ class PostCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            DateFormat('EEEE, MMM d, yyyy').format(timeAgo.toDate()),
+                            DateFormat(
+                              'EEEE, MMM d, yyyy',
+                            ).format(timeAgo.toDate()),
                             style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.darkGray,
@@ -162,10 +171,24 @@ class PostCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _ActionButton(
-                  icon: Icons.thumb_up_outlined,
-                  label: 'Like',
-                  onTap: () {},
+                StreamBuilder(
+                  stream: postProvider.isPostLiked(id, userId),
+
+                  builder: (context, snapshot) {
+                    print("Post id =====================");
+                    print(id);
+                    print("snapshot data of post inside builder");
+                    print(snapshot.data);
+                    return _LikeButton(
+                      liked: snapshot.data ?? false,
+                      icon: Icons.thumb_up_outlined,
+                      label: 'Like',
+                      onTap: () async {
+                        print("post is liked =========");
+                        await postProvider.togglePostLike(id, userId);
+                      },
+                    );
+                  },
                 ),
                 _ActionButton(
                   icon: Icons.comment_outlined,
@@ -218,6 +241,64 @@ class _ActionButton extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _LikeButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool liked;
+  final VoidCallback onTap;
+
+  const _LikeButton({
+    required this.liked,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: liked
+            ? Row(
+                children: [
+                  Icon(Icons.thumb_up, size: 20, color: AppColors.accentNavy),
+                  const SizedBox(width: 6),
+                  Text(
+                    "Liked",
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.darkGray,
+                    ),
+                  ),
+                ],
+              )
+            : Row(
+                children: [
+                  Icon(
+                    Icons.thumb_up_outlined,
+                    size: 20,
+                    color: AppColors.darkGray,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    "Like",
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.darkGray,
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }

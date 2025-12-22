@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iub_social/providers/authentication_provider.dart';
+import 'package:iub_social/views/screens/auth/login.dart';
 import 'package:provider/provider.dart';
 import '../../utils/app_colors.dart';
 import '../common/custom_app_bar.dart';
@@ -18,7 +19,10 @@ class ProfileScreen extends StatelessWidget {
         title: 'Profile',
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined, color: AppColors.pureWhite),
+            icon: const Icon(
+              Icons.settings_outlined,
+              color: AppColors.pureWhite,
+            ),
             onPressed: () {},
           ),
         ],
@@ -42,7 +46,7 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 children: [
                   const SizedBox(height: 24),
-                  
+
                   // Profile Picture
                   Stack(
                     children: [
@@ -52,7 +56,10 @@ class ProfileScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: AppColors.lightNavy,
-                          border: Border.all(color: AppColors.pureWhite, width: 4),
+                          border: Border.all(
+                            color: AppColors.pureWhite,
+                            width: 4,
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.1),
@@ -81,7 +88,10 @@ class ProfileScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: AppColors.accentNavy,
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.pureWhite, width: 3),
+                            border: Border.all(
+                              color: AppColors.pureWhite,
+                              width: 3,
+                            ),
                           ),
                           child: const Icon(
                             Icons.camera_alt,
@@ -92,12 +102,12 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Name and Info
-                   Text(
-                    name??"User",
+                  Text(
+                    name ?? "User",
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
@@ -117,7 +127,11 @@ class ProfileScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
-                      Icon(Icons.location_on, size: 16, color: AppColors.mediumGray),
+                      Icon(
+                        Icons.location_on,
+                        size: 16,
+                        color: AppColors.mediumGray,
+                      ),
                       SizedBox(width: 4),
                       Text(
                         'Islamia University of Bahawalpur',
@@ -128,9 +142,9 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Stats
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -138,16 +152,24 @@ class ProfileScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _StatItem(label: 'Posts', count: '48'),
-                        Container(width: 1, height: 40, color: AppColors.lightGray),
+                        Container(
+                          width: 1,
+                          height: 40,
+                          color: AppColors.lightGray,
+                        ),
                         _StatItem(label: 'Friends', count: '342'),
-                        Container(width: 1, height: 40, color: AppColors.lightGray),
+                        Container(
+                          width: 1,
+                          height: 40,
+                          color: AppColors.lightGray,
+                        ),
                         _StatItem(label: 'Photos', count: '127'),
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Action Buttons
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -176,10 +198,15 @@ class ProfileScreen extends StatelessWidget {
                             backgroundColor: AppColors.offWhite,
                             foregroundColor: AppColors.primaryNavy,
                             elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
-                              side: const BorderSide(color: AppColors.lightGray),
+                              side: const BorderSide(
+                                color: AppColors.lightGray,
+                              ),
                             ),
                           ),
                           child: const Icon(Icons.share),
@@ -187,14 +214,14 @@ class ProfileScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // About Section
             Container(
               width: double.infinity,
@@ -249,9 +276,9 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Quick Links
             Container(
               width: double.infinity,
@@ -303,9 +330,9 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Recent Posts Section Header
             Container(
               width: double.infinity,
@@ -319,7 +346,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             // Posts
             // Padding(
             //   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -356,8 +383,8 @@ class ProfileScreen extends StatelessWidget {
             //     ],
             //   ),
             // ),
-            
             const SizedBox(height: 24),
+            
           ],
         ),
       ),
@@ -481,7 +508,11 @@ class _QuickLinkTile extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.mediumGray),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: AppColors.mediumGray,
+            ),
           ],
         ),
       ),

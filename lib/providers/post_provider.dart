@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:iub_social/models/create_post.dart';
 import 'package:iub_social/models/post.dart';
 
-class PostProvider extends ChangeNotifier {
+class PostProvider1 extends ChangeNotifier {
   FirebaseStorage _storage = FirebaseStorage.instance;
   FirebaseFirestore _database = FirebaseFirestore.instance;
 
@@ -39,5 +39,31 @@ class PostProvider extends ChangeNotifier {
       "userId": post.userId,
     };
     final uploadingPost = await _database.collection("posts").add(postData);
+  }
+
+  // ========================================================
+  // Like system
+  //======================================================
+
+  Stream<bool> isPostLiked(String postId, String userId)  {
+    final postRef = _database.collection('posts').doc(postId);
+    final likeRef = postRef.collection('likes').doc(userId);
+    return likeRef.snapshots().map((snapshot) => snapshot.exists);
+  }
+
+  Future<void> togglePostLike(String postId, String userId) async {
+    final postRef = _database.collection('posts').doc(postId);
+    final likeRef = postRef.collection('likes').doc(userId);
+    final likeSnapshot = await likeRef.get();
+    if (likeSnapshot.exists) {
+      await likeRef.delete();
+      postRef.update({"likes": FieldValue.increment(-1)});
+    } else {
+      postRef.update({"likes": FieldValue.increment(1)});
+      await likeRef.set({
+        "userId": userId,
+        "timestamp": FieldValue.serverTimestamp(),
+      });
+    }
   }
 }
