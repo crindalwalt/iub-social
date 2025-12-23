@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:iub_social/models/comment.dart';
 import 'package:iub_social/providers/authentication_provider.dart';
 import 'package:iub_social/providers/post_provider.dart';
 import 'package:provider/provider.dart';
@@ -35,8 +36,36 @@ class PostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthenticationProvider>(context, listen: false);
     final postProvider = Provider.of<PostProvider1>(context);
+    final TextEditingController _commentController = TextEditingController();
+    final GlobalKey<FormState> _commentFormKey = GlobalKey<FormState>();
     // final isLikedFuture = postProvider.isPostLiked(postId, userId)
     final userName = auth.getUserNameFromId(userId);
+
+    void submitComment() async {
+      print("Comment submitted");
+      if (_commentFormKey.currentState!.validate()) {
+        // Add comment submission logic here
+
+        final String message = _commentController.text;
+        final userId = auth.user!.uid;
+
+        print("we recieved a new comment ");
+        print(_commentController.text);
+        print("by  $userId");
+
+        final Comment newComment = Comment(
+          postId: id,
+          message: message,
+          userId: userId,
+        );
+        await postProvider.addComment(newComment);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Comment added successfully")),
+        );
+        Navigator.pop(context);
+      }
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -193,7 +222,187 @@ class PostCard extends StatelessWidget {
                 _ActionButton(
                   icon: Icons.comment_outlined,
                   label: 'Comment',
-                  onTap: () {},
+                  onTap: () {
+                    showModalBottomSheet(
+                      showDragHandle: true,
+                      isScrollControlled: true,
+                      context: context,
+                      backgroundColor: AppColors.pureWhite,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(20),
+                        ),
+                      ),
+                      builder: (context) {
+                        return DraggableScrollableSheet(
+                          expand: false,
+                          initialChildSize: 0.7,
+                          minChildSize: 0.4,
+                          maxChildSize: 0.95,
+                          builder: (context, scrollController) {
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                left: 16,
+                                right: 16,
+                                top: 16,
+                                bottom:
+                                    MediaQuery.of(context).viewInsets.bottom +
+                                    16,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: const [
+                                      Icon(
+                                        Icons.comment,
+                                        color: AppColors.primaryNavy,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        "Comments",
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primaryNavy,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Divider(height: 1, thickness: 1),
+                                  const SizedBox(height: 8),
+                                  // Comments List
+                                  Expanded(
+                                    child: ListView.separated(
+                                      controller: scrollController,
+                                      itemCount:
+                                          4, // TODO: Replace with actual comments count
+                                      separatorBuilder: (context, idx) =>
+                                          const Divider(height: 20),
+                                      itemBuilder: (context, idx) {
+                                        // TODO: Replace with actual comment data
+                                        return Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 18,
+                                              backgroundColor:
+                                                  AppColors.lightNavy,
+                                              child: Text(
+                                                "U", // TODO: User initial
+                                                style: const TextStyle(
+                                                  color: AppColors.pureWhite,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      Text(
+                                                        "User Name", // TODO: User name
+                                                        style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          color: AppColors
+                                                              .primaryNavy,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 8),
+                                                      Text(
+                                                        "2h ago", // TODO: Time ago
+                                                        style: const TextStyle(
+                                                          fontSize: 12,
+                                                          color: AppColors
+                                                              .darkGray,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  Text(
+                                                    "This is a sample comment.", // TODO: Comment text
+                                                    style: const TextStyle(
+                                                      fontSize: 15,
+                                                      color:
+                                                          AppColors.primaryNavy,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // Add Comment Form
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.offWhite,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Form(
+                                      key: _commentFormKey,
+
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: TextFormField(
+                                              controller: _commentController,
+                                              minLines: 1,
+                                              maxLines: 3,
+                                              decoration: const InputDecoration(
+                                                hintText: "Write a comment...",
+                                                border: InputBorder.none,
+                                                isDense: true,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Material(
+                                            color: AppColors.accentNavy,
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            child: InkWell(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              onTap: submitComment,
+                                              child: const Padding(
+                                                padding: EdgeInsets.all(8.0),
+                                                child: Icon(
+                                                  Icons.send,
+                                                  color: AppColors.pureWhite,
+                                                  size: 22,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
                 ),
                 _ActionButton(
                   icon: Icons.share_outlined,

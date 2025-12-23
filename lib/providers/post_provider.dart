@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:iub_social/models/comment.dart';
 import 'package:iub_social/models/create_post.dart';
 import 'package:iub_social/models/post.dart';
 
@@ -45,7 +46,7 @@ class PostProvider1 extends ChangeNotifier {
   // Like system
   //======================================================
 
-  Stream<bool> isPostLiked(String postId, String userId)  {
+  Stream<bool> isPostLiked(String postId, String userId) {
     final postRef = _database.collection('posts').doc(postId);
     final likeRef = postRef.collection('likes').doc(userId);
     return likeRef.snapshots().map((snapshot) => snapshot.exists);
@@ -65,5 +66,38 @@ class PostProvider1 extends ChangeNotifier {
         "timestamp": FieldValue.serverTimestamp(),
       });
     }
+  }
+
+  Future<void> addComment(Comment comment) async {
+    final postRef = _database.collection("posts").doc(comment.postId);
+
+    
+    final commentRef = await postRef.collection("comments").add({
+      "message": comment.message,
+      "postId": comment.postId,
+      "commentedAt": FieldValue.serverTimestamp(),
+      "userId": comment.userId,
+    });
+    postRef.update({"comments": FieldValue.increment(1)});
+
+
+    notifyListeners();
+  }
+
+
+  Future<Comment> fetchAllCommentsForPost({required String postId}) async {
+    final postRef = _database.collection("posts").doc(postId);
+    final commentsRef = postRef.collection("comments");
+    final snapshot = await commentsRef.get();
+    final List<Comment> comments = [];
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      comments.add(Comment(
+        postId: data["postId"],
+        message: data["message"],
+        userId: data["userId"],
+      ));
+    }
+    return comments.first;
   }
 }

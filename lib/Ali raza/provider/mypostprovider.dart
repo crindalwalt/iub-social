@@ -36,4 +36,29 @@ class Mypostprovider extends ChangeNotifier {
 
     notifyListeners();
   }
+
+  //like system=========
+  
+  Stream<bool>ispostLiked(String postId,String userId){
+    final postRef=_firestore.collection("Aliposts").doc(postId);
+    return postRef.collection("likes").doc(userId).snapshots().map((snapshot) => snapshot.exists);
+  }
+  Future<void> togglepostLike(String postId, String userId) async {
+    final postRef=_firestore.collection("Aliposts").doc(postId);
+    final likeRef=postRef.collection("likes").doc(userId);
+
+    final snapshot=await likeRef.get();
+     if (snapshot.exists) {
+      await likeRef.delete();
+      postRef.update({"likes": FieldValue.increment(-1)});
+    } else {
+      postRef.update({"likes": FieldValue.increment(1)});
+      await likeRef.set({
+        "userId": userId,
+        "timestamp": FieldValue.serverTimestamp(),
+      });
+    }
+  }
+
+  
 }
