@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:iub_social/Ali%20raza/Views/myPost1.dart';
@@ -49,8 +50,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               leading: const Icon(Icons.upload_file, color: Colors.green),
               title: const Text("Upload Image"),
               onTap: () async {
-                FilePickerResult? result =
-                    await FilePicker.platform.pickFiles(type: FileType.image);
+                FilePickerResult? result = await FilePicker.platform.pickFiles(
+                  type: FileType.image,
+                );
 
                 if (result != null && result.files.single.path != null) {
                   setState(() {
@@ -92,10 +94,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       return;
     }
 
-    final postProvider =
-        Provider.of<Mypostprovider>(context, listen: false);
-    final authProvider =
-        Provider.of<AuthenticationProvider1>(context, listen: false);
+    final postProvider = Provider.of<Mypostprovider>(context, listen: false);
+    final authProvider = Provider.of<AuthenticationProvider1>(
+      context,
+      listen: false,
+    );
 
     if (authProvider.user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -132,10 +135,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error: $e"),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -145,6 +145,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   // ---------------- UI ----------------
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthenticationProvider1>(
+      context,
+      listen: false,
+    );
+    final userId = authProvider.user?.uid;
     return Scaffold(
       backgroundColor: lightBlue,
       appBar: AppBar(
@@ -168,20 +173,53 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    children: const [
-                      CircleAvatar(
+                    children: [
+                      const CircleAvatar(
                         radius: 28,
                         backgroundColor: Color(0xFF007BFF),
                         child: Icon(Icons.person, color: Colors.white),
                       ),
-                      SizedBox(width: 12),
-                      Text(
-                        "Ali Raza",
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      const SizedBox(width: 12),
+                      userId == null
+                          ? const Text(
+                              "Unknown User",
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          : FutureBuilder<String?>(
+                              future: authProvider.getUserNameFromId(userId),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Text(
+                                    "Loading...",
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  );
+                                }
+                                if (!snapshot.hasData ||
+                                    snapshot.data == null) {
+                                  return const Text(
+                                    "Unknown User",
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  );
+                                }
+                                return Text(
+                                  snapshot.data!,
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                );
+                              },
+                            ),
                     ],
                   ),
 
@@ -213,9 +251,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         border: Border.all(color: Colors.black12),
                       ),
                       child: _selectedImage == null
-                          ? const Center(
-                              child: Text("Tap to upload image"),
-                            )
+                          ? const Center(child: Text("Tap to upload image"))
                           : ClipRRect(
                               borderRadius: BorderRadius.circular(15),
                               child: Image.file(
@@ -238,17 +274,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _createPost,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryBlue,
-                  ),
+                  style: ElevatedButton.styleFrom(backgroundColor: primaryBlue),
                   child: _isLoading
-                      ? const CircularProgressIndicator(
-                          color: Colors.white,
-                        )
-                      : const Text(
-                          "Post",
-                          style: TextStyle(fontSize: 18),
-                        ),
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text("Post", style: TextStyle(fontSize: 18)),
                 ),
               ),
             ),

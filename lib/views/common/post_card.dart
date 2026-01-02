@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:iub_social/models/comment.dart';
 import 'package:iub_social/providers/authentication_provider.dart';
+import 'package:iub_social/providers/connection_provider.dart';
 import 'package:iub_social/providers/post_provider.dart';
 import 'package:provider/provider.dart';
 import '../../utils/app_colors.dart';
@@ -36,6 +37,7 @@ class PostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthenticationProvider>(context, listen: false);
     final postProvider = Provider.of<PostProvider1>(context);
+    final connectionProvider = Provider.of<ConnectionProvider>(context);
     final TextEditingController _commentController = TextEditingController();
     final GlobalKey<FormState> _commentFormKey = GlobalKey<FormState>();
     // final isLikedFuture = postProvider.isPostLiked(postId, userId)
@@ -59,9 +61,9 @@ class PostCard extends StatelessWidget {
           userId: userId,
         );
         await postProvider.addComment(newComment);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Comment added successfully")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Comment added successfully")));
         Navigator.pop(context);
       }
     }
@@ -125,6 +127,73 @@ class PostCard extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.darkGray,
+                            ),
+                          ),
+                          SizedBox(height: 7),
+                          InkWell(
+                            onTap: () {
+                              print("you are following user $userId ....");
+                              final myId = auth.user!.uid;
+                              connectionProvider.followUser(
+                                userId: myId,
+                                otherUserId: userId,
+                              );
+                            },
+                            child: StreamBuilder(
+                              stream: connectionProvider.isUserFollowed(
+                                auth.user!.uid,
+                                userId,
+                              ),
+                              builder: (context, snapshot) {
+                                if (snapshot.data! == true) {
+                                  // if followed
+                                  return Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        width: 1,
+                                        color: Colors.grey,
+                                        style: BorderStyle.solid,
+                                      ),
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.check),
+                                        SizedBox(width: 5),
+                                        Text("Following"),
+                                      ],
+                                    ),
+                                  );
+                                } else {
+                                  return Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        width: 1,
+                                        color: Colors.grey,
+                                        style: BorderStyle.solid,
+                                      ),
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.add),
+                                        SizedBox(width: 5),
+                                        Text("Follow"),
+                                      ],
+                                    ),
+                                  );
+                                }
+                              },
                             ),
                           ),
                         ],
