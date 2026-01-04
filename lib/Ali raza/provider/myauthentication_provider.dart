@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class AuthenticationProvider1 extends ChangeNotifier {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final FirebaseFirestore _database = FirebaseFirestore.instance;
   User? _user;
 
   AuthenticationProvider1() {
@@ -40,14 +42,20 @@ class AuthenticationProvider1 extends ChangeNotifier {
     required String password,
   }) async {
     try {
-      final userCredential =
-          await _firebaseAuth.createUserWithEmailAndPassword(
+      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
       // Optional: set display name
       await userCredential.user?.updateDisplayName(name);
+
+      // Store user info in Firestore for name lookup
+      await _database.collection("myusers").doc(userCredential.user!.uid).set({
+        "name": name,
+        "email": email,
+        "createdAt": DateTime.now(),
+      });
 
       return true;
     } catch (e) {
@@ -61,5 +69,12 @@ class AuthenticationProvider1 extends ChangeNotifier {
     await _firebaseAuth.signOut();
     _user = null;
     notifyListeners();
+  }
+
+ Future<String?> getUserNameFromId(String userId) async {
+    final user = await _database.collection("myusers").doc(userId).get();
+    final userData = user.data()!;
+    final username = userData["name"];
+    return username;
   }
 }

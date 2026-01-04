@@ -3,6 +3,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:iub_social/Ali%20raza/Views/mypost.dart';
 import 'package:iub_social/Ali%20raza/Views/myprofile.dart';
+import 'package:provider/provider.dart';
+import 'package:iub_social/Ali%20raza/provider/mypostprovider.dart';
+import 'package:iub_social/Ali%20raza/provider/myauthentication_provider.dart';
+import 'package:intl/intl.dart';
 
 class MyHome extends StatefulWidget {
   const MyHome({super.key});
@@ -12,12 +16,17 @@ class MyHome extends StatefulWidget {
 }
 
 class _MyHomeState extends State<MyHome> {
+  // Controller and key for comment form
+  final TextEditingController _commentController = TextEditingController();
+  final GlobalKey<FormState> _commentFormKey = GlobalKey<FormState>();
   final Color primaryBlue = const Color(0xFF007BFF);
   final Color lightBlue = const Color(0xFFEAF4FF);
   int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthenticationProvider1>(context);
+    final postProvider = Provider.of<Mypostprovider>(context);
     return Scaffold(
       backgroundColor: lightBlue,
       appBar: AppBar(
@@ -166,8 +175,25 @@ class _MyHomeState extends State<MyHome> {
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: data.length,
                   itemBuilder: (context, index) {
-
-                    final postdata=data[index];
+                    final postdata = data[index];
+                    final postId = postdata.id;
+                    final userId = authProvider.user?.uid ?? "";
+                    final Timestamp? createdAt = postdata["createdAt"];
+                    String timeAgo = "";
+                    if (createdAt != null) {
+                      final now = DateTime.now();
+                      final postTime = createdAt.toDate();
+                      final diff = now.difference(postTime);
+                      if (diff.inSeconds < 60) {
+                        timeAgo = "just now";
+                      } else if (diff.inMinutes < 60) {
+                        timeAgo = "${diff.inMinutes} min ago";
+                      } else if (diff.inHours < 24) {
+                        timeAgo = "${diff.inHours} hrs ago";
+                      } else {
+                        timeAgo = DateFormat('MMM d, yyyy').format(postTime);
+                      }
+                    }
                     return Container(
                       margin: const EdgeInsets.only(bottom: 10),
                       color: Colors.white,
@@ -180,19 +206,54 @@ class _MyHomeState extends State<MyHome> {
                               backgroundColor: Color(0xFF007BFF),
                               child: Icon(Icons.person, color: Colors.white),
                             ),
-                            title: Text(
-                              "User ${index + 1}",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
+                            title: FutureBuilder<DocumentSnapshot>(
+                              future: FirebaseFirestore.instance
+                                  .collection("myusers")
+                                  .doc(postdata["userId"])
+                                  .get(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Text(
+                                    "Loading...",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  );
+                                }
+                                if (!snapshot.hasData ||
+                                    !snapshot.data!.exists) {
+                                  return const Text(
+                                    "Unknown User",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  );
+                                }
+                                final userData =
+                                    snapshot.data!.data()
+                                        as Map<String, dynamic>?;
+                                final name =
+                                    userData != null && userData["name"] != null
+                                    ? userData["name"]
+                                    : "Unknown User";
+                                return Text(
+                                  name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                );
+                              },
                             ),
-                            subtitle: const Text("2 hrs ago"),
+                            subtitle: Text(timeAgo),
                             trailing: const Icon(Icons.more_horiz),
                           ),
 
                           // Post Text
-                           Padding(
+                          Padding(
                             padding: EdgeInsets.symmetric(
                               horizontal: 15,
                               vertical: 8,
@@ -211,7 +272,10 @@ class _MyHomeState extends State<MyHome> {
                             height: 200,
                             width: double.infinity,
                             decoration: BoxDecoration(color: lightBlue),
-                            child:Image.network(postdata["postImage"]!,fit: BoxFit.cover,)
+                            child: Image.network(
+                              postdata["postImage"]!,
+                              fit: BoxFit.cover,
+                            ),
                           ),
 
                           // Action Row
@@ -223,15 +287,361 @@ class _MyHomeState extends State<MyHome> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                _buildAction(
-                                  Icons.thumb_up_alt_outlined,
-                                  "Like",
+                                // Like Button with state
+                                StreamBuilder<bool>(
+                                  stream: postProvider.ispostLiked(
+                                    postId,
+                                    userId,
+                                  ),
+                                  builder: (context, snapshot) {
+                                    final isLiked = snapshot.data ?? false;
+                                    return InkWell(
+                                      onTap: userId.isEmpty
+                                          ? null
+                                          : () => postProvider.togglepostLike(
+                                              postId,
+                                              userId,
+                                            ),
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            isLiked
+                                                ? Icons.thumb_up
+                                                : Icons.thumb_up_alt_outlined,
+                                            color: isLiked
+                                                ? primaryBlue
+                                                : Colors.black54,
+                                            size: 22,
+                                          ),
+                                          const SizedBox(width: 5),
+                                          // Like count
+                                          Text(
+                                            '${postdata["likes"] ?? 0} Like',
+                                            style: TextStyle(
+                                              color: isLiked
+                                                  ? primaryBlue
+                                                  : Colors.black54,
+                                              fontSize: 15,
+                                              fontWeight: isLiked
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
                                 ),
-                                _buildAction(
-                                  Icons.mode_comment_outlined,
-                                  "Comment",
+                                GestureDetector(
+                                  onTap: () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (context) {
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                                  topLeft: Radius.circular(24),
+                                                  topRight: Radius.circular(24),
+                                                ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(
+                                                  0.1,
+                                                ),
+                                                blurRadius: 10,
+                                                offset: const Offset(0, -2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: DraggableScrollableSheet(
+                                            expand: false,
+                                            initialChildSize: 0.5,
+                                            minChildSize: 0.3,
+                                            maxChildSize: 0.9,
+                                            builder: (context, scrollController) {
+                                              return Column(
+                                                children: [
+                                                  Container(
+                                                    margin:
+                                                        const EdgeInsets.symmetric(
+                                                          vertical: 12,
+                                                        ),
+                                                    width: 40,
+                                                    height: 5,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.grey[300],
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            10,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                  const Text(
+                                                    "Comments",
+                                                    style: TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Color(0xFF007BFF),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Expanded(
+                                                    child: StreamBuilder<QuerySnapshot>(
+                                                      stream: FirebaseFirestore
+                                                          .instance
+                                                          .collection(
+                                                            'Aliposts',
+                                                          )
+                                                          .doc(postId)
+                                                          .collection(
+                                                            'comments',
+                                                          )
+                                                          .orderBy(
+                                                            'timestamp',
+                                                            descending: true,
+                                                          )
+                                                          .snapshots(),
+                                                      builder: (context, snapshot) {
+                                                        if (snapshot
+                                                                .connectionState ==
+                                                            ConnectionState
+                                                                .waiting) {
+                                                          return Center(
+                                                            child:
+                                                                CircularProgressIndicator(),
+                                                          );
+                                                        }
+
+                                                        if (snapshot
+                                                            .data!
+                                                            .docs
+                                                            .isEmpty) {
+                                                          return Center(
+                                                            child: Text(
+                                                              "No comments yet",
+                                                            ),
+                                                          );
+                                                        }
+                                                        final comments =
+                                                            snapshot.data!.docs;
+                                                        // Build your comment list UI here
+                                                        return ListView.builder(
+                                                          controller:
+                                                              scrollController,
+                                                          itemCount:
+                                                              comments.length,
+                                                          itemBuilder: (context, index) {
+                                                            final commentData =
+                                                                comments[index]
+                                                                        .data()
+                                                                    as Map<
+                                                                      String,
+                                                                      dynamic
+                                                                    >;
+                                                            
+                                                            return Card(
+                                                              color:
+                                                                  index % 2 == 0
+                                                                  ? const Color(
+                                                                      0xFFEAF4FF,
+                                                                    )
+                                                                  : const Color(
+                                                                      0xFFD1E9FF,
+                                                                    ),
+                                                              margin:
+                                                                  const EdgeInsets.symmetric(
+                                                                    horizontal:
+                                                                        16,
+                                                                    vertical: 6,
+                                                                  ),
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      16,
+                                                                    ),
+                                                              ),
+                                                              child: ListTile(
+                                                                leading: CircleAvatar(
+                                                                  backgroundColor:
+                                                                      const Color(
+                                                                        0xFF007BFF,
+                                                                      ),
+                                                                  child: Icon(
+                                                                    Icons
+                                                                        .person,
+                                                                    color: Colors
+                                                                        .white,
+                                                                  ),
+                                                                ),
+                                                                title: FutureBuilder<String?>(
+                                                                  future: authProvider
+                                                                      .getUserNameFromId(
+                                                                        commentData['userId'],
+                                                                      ),
+                                                                  builder:
+                                                                      (
+                                                                        context,
+                                                                        snapshot,
+                                                                      ) {
+                                                                        if (snapshot.connectionState ==
+                                                                            ConnectionState.waiting) {
+                                                                          return const Text(
+                                                                            "Loading...",
+                                                                            style: TextStyle(
+                                                                              fontWeight: FontWeight.bold,
+                                                                            ),
+                                                                          );
+                                                                        }
+
+                                                                        return Text(
+                                                                          snapshot.data ??
+                                                                              "Unknown User",
+                                                                          style: const TextStyle(
+                                                                            fontWeight:
+                                                                                FontWeight.bold,
+                                                                            color: Color(
+                                                                              0xFF007BFF,
+                                                                            ),
+                                                                          ),
+                                                                        );
+                                                                      },
+                                                                ),
+
+                                                                subtitle: Text(
+                                                                  commentData['comment']!,
+                                                                  style: TextStyle(
+                                                                    color: Colors
+                                                                        .grey[800],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                        );
+                                                      },
+                                                    ),
+                                                  ),
+                                                  // Comment form UI
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.fromLTRB(
+                                                          16,
+                                                          8,
+                                                          16,
+                                                          16,
+                                                        ),
+                                                    child: Form(
+                                                      key: _commentFormKey,
+                                                      child: Row(
+                                                        children: [
+                                                          Expanded(
+                                                            child: TextFormField(
+                                                              controller:
+                                                                  _commentController,
+                                                              validator: (value) {
+                                                                if (value ==
+                                                                        null ||
+                                                                    value
+                                                                        .trim()
+                                                                        .isEmpty) {
+                                                                  return 'Please enter a comment';
+                                                                }
+                                                                return null;
+                                                              },
+                                                              decoration: InputDecoration(
+                                                                hintText:
+                                                                    'Write a comment...',
+                                                                filled: true,
+                                                                fillColor:
+                                                                    const Color(
+                                                                      0xFFF3F6FA,
+                                                                    ),
+                                                                contentPadding:
+                                                                    const EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          16,
+                                                                      vertical:
+                                                                          12,
+                                                                    ),
+                                                                border: OutlineInputBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                        25,
+                                                                      ),
+                                                                  borderSide:
+                                                                      BorderSide
+                                                                          .none,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 8,
+                                                          ),
+                                                          Material(
+                                                            color: const Color(
+                                                              0xFF007BFF,
+                                                            ),
+                                                            shape:
+                                                                const CircleBorder(),
+                                                            child: IconButton(
+                                                              onPressed: () async {
+                                                                if (_commentFormKey
+                                                                        .currentState
+                                                                        ?.validate() ??
+                                                                    false) {
+                                                                  final commentText =
+                                                                      _commentController
+                                                                          .text
+                                                                          .trim();
+                                                                  if (commentText
+                                                                      .isNotEmpty) {
+                                                                    await postProvider
+                                                                        .addComment(
+                                                                          postId,
+                                                                          commentText,
+                                                                          userId,
+                                                                        );
+                                                                    _commentController
+                                                                        .clear();
+                                                                    FocusScope.of(
+                                                                      context,
+                                                                    ).unfocus();
+                                                                  }
+                                                                }
+                                                              },
+                                                              icon: const Icon(
+                                                                Icons.send,
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: _buildAction(
+                                    Icons.mode_comment_outlined,
+                                    "Comment",
+                                    postdata['comments'].toString()
+                                  ),
                                 ),
-                                _buildAction(Icons.share_outlined, "Share"),
+                                _buildAction(Icons.share_outlined, "Share", postdata['shares'].toString()),
                               ],
                             ),
                           ),
@@ -249,11 +659,16 @@ class _MyHomeState extends State<MyHome> {
   }
 
   // Helper widget for post actions
-  Widget _buildAction(IconData icon, String label) {
+  Widget _buildAction(IconData icon, String label, String count) {
     return Row(
       children: [
         Icon(icon, color: Colors.black54, size: 22),
         const SizedBox(width: 5),
+        Text(
+          count,
+          style: const TextStyle(color: Colors.black54, fontSize: 15),
+        ),
+        SizedBox(width: 5),
         Text(
           label,
           style: const TextStyle(color: Colors.black54, fontSize: 15),

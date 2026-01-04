@@ -8,6 +8,7 @@ import 'package:iub_social/Ali%20raza/provider/myauthentication_provider.dart';
 import 'package:iub_social/Ali%20raza/provider/mypostprovider.dart';
 import 'package:iub_social/firebase_options.dart';
 import 'package:iub_social/providers/authentication_provider.dart';
+import 'package:iub_social/providers/connection_provider.dart';
 import 'package:iub_social/providers/post_provider.dart';
 import 'package:iub_social/views/screens/auth/login.dart';
 import 'package:provider/provider.dart';
@@ -41,6 +42,7 @@ class IUBSocialApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthenticationProvider()),
         ChangeNotifierProvider(create: (_) => PostProvider1()),
+        ChangeNotifierProvider(create: (_) => ConnectionProvider()),
       ],
       child: MaterialApp(
         title: 'IUB Social',
