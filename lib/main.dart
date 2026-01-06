@@ -100,19 +100,19 @@ class AuthWrapper extends StatelessWidget {
   }
 }
 
-class SocialApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => AuthenticationProvider1()),
-        ChangeNotifierProvider(create: (context) => Mypostprovider()),
-      ],
-      child: MaterialApp(
-        title: "Social App",
-        debugShowCheckedModeBanner: false,
-        home: AuthWrapper1(),
-      ),
-    );
-  }
-}
+// class SocialApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return MultiProvider(
+//       providers: [
+//         ChangeNotifierProvider(create: (context) => AuthenticationProvider1()),
+//         ChangeNotifierProvider(create: (context) => Mypostprovider()),
+//       ],
+//       child: MaterialApp(
+//         title: "Social App",
+//         debugShowCheckedModeBanner: false,
+//         home: AuthWrapper1(),
+//       ),
+//     );
+//   }
+// }
