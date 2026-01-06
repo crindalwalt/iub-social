@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iub_social/views/screens/explore_screen.dart';
 import '../../utils/app_colors.dart';
 import '../screens/feed_screen.dart';
 import '../screens/browse_screen.dart';
@@ -18,6 +19,7 @@ class _MainNavigationState extends State<MainNavigation> {
   final List<Widget> _screens = const [
     FeedScreen(),
     BrowseScreen(),
+    ExploreScreen(),
     ChatsScreen(),
     ProfileScreen(),
   ];
@@ -60,8 +62,13 @@ class _MainNavigationState extends State<MainNavigation> {
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.explore_outlined),
-              activeIcon: Icon(Icons.explore),
+              activeIcon: Icon(Icons.search),
               label: 'Browse',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.explore_outlined),
+              activeIcon: Icon(Icons.explore),
+              label: 'Explore',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.chat_bubble_outline),

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:iub_social/models/comment.dart';
@@ -103,4 +104,21 @@ class PostProvider1 extends ChangeNotifier {
 
 
 
-}
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> followedPostFeed () {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final userDocRef  = _database.collection('users').doc(userId);
+    final followingRef = userDocRef.collection('following');
+
+    final stream = followingRef.snapshots().asyncExpand((followingSnapshot) {
+      final followedUserIds = followingSnapshot.docs.map((doc) => doc.id).toList();
+      if (followedUserIds.isEmpty) {
+        return Stream<QuerySnapshot<Map<String, dynamic>>>.empty();
+      }
+      final postsRef = _database.collection('posts').where('userId', whereIn: followedUserIds);
+      return postsRef.snapshots();
+    });
+  notifyListeners();
+    return stream;
+  }
+  }

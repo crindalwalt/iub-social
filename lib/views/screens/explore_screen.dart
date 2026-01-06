@@ -1,20 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:iub_social/models/post.dart';
-import 'package:iub_social/providers/post_provider.dart';
 import 'package:iub_social/views/screens/create_post.dart';
-import 'package:provider/provider.dart';
 import '../../utils/app_colors.dart';
 import '../common/custom_app_bar.dart';
 import '../common/post_card.dart';
 import '../common/story_circle.dart';
 
-class FeedScreen extends StatelessWidget {
-  const FeedScreen({super.key});
+class ExploreScreen extends StatelessWidget {
+  const ExploreScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final postprovider = Provider.of<PostProvider1>(context);
     return Scaffold(
       backgroundColor: AppColors.offWhite,
       appBar: CustomAppBar(
@@ -37,102 +34,102 @@ class FeedScreen extends StatelessWidget {
         child: Column(
           children: [
             // Stories Section
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                color: AppColors.pureWhite,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 5,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: const [
-                    StoryCircle(
-                      userName: 'Your Story',
-                      userInitial: 'Y',
-                      isOwn: true,
-                    ),
-                    StoryCircle(userName: 'Ahmed', userInitial: 'A'),
-                    StoryCircle(userName: 'Fatima', userInitial: 'F'),
-                    StoryCircle(userName: 'Hassan', userInitial: 'H'),
-                    StoryCircle(userName: 'Ayesha', userInitial: 'A'),
-                    StoryCircle(userName: 'Usman', userInitial: 'U'),
-                    StoryCircle(userName: 'Zainab', userInitial: 'Z'),
-                  ],
-                ),
-              ),
-            ),
+            // Container(
+            //   width: double.infinity,
+            //   padding: const EdgeInsets.symmetric(vertical: 16),
+            //   decoration: BoxDecoration(
+            //     color: AppColors.pureWhite,
+            //     boxShadow: [
+            //       BoxShadow(
+            //         color: Colors.black.withOpacity(0.05),
+            //         blurRadius: 5,
+            //         offset: const Offset(0, 2),
+            //       ),
+            //     ],
+            //   ),
+            //   child: SingleChildScrollView(
+            //     scrollDirection: Axis.horizontal,
+            //     padding: const EdgeInsets.symmetric(horizontal: 16),
+            //     child: Row(
+            //       children: const [
+            //         StoryCircle(
+            //           userName: 'Your Story',
+            //           userInitial: 'Y',
+            //           isOwn: true,
+            //         ),
+            //         StoryCircle(userName: 'Ahmed', userInitial: 'A'),
+            //         StoryCircle(userName: 'Fatima', userInitial: 'F'),
+            //         StoryCircle(userName: 'Hassan', userInitial: 'H'),
+            //         StoryCircle(userName: 'Ayesha', userInitial: 'A'),
+            //         StoryCircle(userName: 'Usman', userInitial: 'U'),
+            //         StoryCircle(userName: 'Zainab', userInitial: 'Z'),
+            //       ],
+            //     ),
+            //   ),
+            // ),
 
             const SizedBox(height: 8),
 
-            // Create Post Section
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.pureWhite,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 24,
-                    backgroundColor: AppColors.lightNavy,
-                    child: Text(
-                      'Y',
-                      style: TextStyle(
-                        color: AppColors.pureWhite,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.offWhite,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: const Text(
-                        "What's on your mind?",
-                        style: TextStyle(
-                          color: AppColors.mediumGray,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.photo_library,
-                      color: AppColors.accentNavy,
-                    ),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-            ),
+            // // Create Post Section
+            // Container(
+            //   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            //   padding: const EdgeInsets.all(16),
+            //   decoration: BoxDecoration(
+            //     color: AppColors.pureWhite,
+            //     borderRadius: BorderRadius.circular(12),
+            //     boxShadow: [
+            //       BoxShadow(
+            //         color: Colors.black.withOpacity(0.05),
+            //         blurRadius: 10,
+            //         offset: const Offset(0, 2),
+            //       ),
+            //     ],
+            //   ),
+            //   child: Row(
+            //     children: [
+            //       const CircleAvatar(
+            //         radius: 24,
+            //         backgroundColor: AppColors.lightNavy,
+            //         child: Text(
+            //           'Y',
+            //           style: TextStyle(
+            //             color: AppColors.pureWhite,
+            //             fontWeight: FontWeight.bold,
+            //             fontSize: 18,
+            //           ),
+            //         ),
+            //       ),
+            //       const SizedBox(width: 12),
+            //       Expanded(
+            //         child: Container(
+            //           padding: const EdgeInsets.symmetric(
+            //             horizontal: 16,
+            //             vertical: 12,
+            //           ),
+            //           decoration: BoxDecoration(
+            //             color: AppColors.offWhite,
+            //             borderRadius: BorderRadius.circular(24),
+            //           ),
+            //           child: const Text(
+            //             "What's on your mind?",
+            //             style: TextStyle(
+            //               color: AppColors.mediumGray,
+            //               fontSize: 15,
+            //             ),
+            //           ),
+            //         ),
+            //       ),
+            //       const SizedBox(width: 8),
+            //       IconButton(
+            //         icon: const Icon(
+            //           Icons.photo_library,
+            //           color: AppColors.accentNavy,
+            //         ),
+            //         onPressed: () {},
+            //       ),
+            //     ],
+            //   ),
+            // ),
 
             // Posts Feed
             // Padding(
@@ -190,7 +187,10 @@ class FeedScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(16),
               child: StreamBuilder(
-                stream: postprovider.followedPostFeed(),
+                stream: FirebaseFirestore.instance
+                    .collection('posts')
+                    .orderBy('timeCreated', descending: true)
+                    .snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
