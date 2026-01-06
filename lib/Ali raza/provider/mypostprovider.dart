@@ -59,6 +59,18 @@ class Mypostprovider extends ChangeNotifier {
       });
     }
   }
+  // function for comment
+
+  Future<void> addComment(String postId, String comment, String userId) async {
+    final postRef = _firestore.collection("Aliposts").doc(postId);
+    
+    await postRef.collection("comments").add({
+      "comment": comment,
+      "userId": userId,
+      "timestamp": FieldValue.serverTimestamp(),
+    });
+    await postRef.update({"comments": FieldValue.increment(1)});
+  }
 
   
 }

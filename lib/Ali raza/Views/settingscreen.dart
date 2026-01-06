@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iub_social/Ali%20raza/Views/mylogin.dart';
 import 'package:iub_social/Ali%20raza/provider/myauthentication_provider.dart';
 import 'package:provider/provider.dart';
+
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -24,6 +25,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       print("user is null,......");
     }
 
+    final userId = auth.user?.uid;
+    final userEmail = auth.user?.email ?? "";
     return Scaffold(
       backgroundColor: lightBlue,
       appBar: AppBar(
@@ -70,18 +73,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Ali Raza",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                        if (userId != null)
+                          FutureBuilder<String?>(
+                            future: auth.getUserNameFromId(userId),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                );
+                              }
+                              final username = snapshot.data ?? "Unknown User";
+                              return Text(
+                                username,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              );
+                            },
+                          )
+                        else
+                          const Text(
+                            "Not logged in",
+                            style: TextStyle(fontSize: 18, color: Colors.red),
                           ),
-                        ),
                         const SizedBox(height: 4),
-                        const Text(
-                          "ali.raza@email.com",
-                          style: TextStyle(color: Colors.black54, fontSize: 15),
+                        Text(
+                          userEmail,
+                          style: const TextStyle(
+                            color: Colors.black54,
+                            fontSize: 15,
+                          ),
                         ),
                         const SizedBox(height: 6),
                         Row(
@@ -186,7 +214,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onPressed: () {
                   _showLogoutDialog(context);
                   auth.logoutFromAccount();
-                 
                 },
                 icon: const Icon(Icons.logout),
                 label: const Text("Logout"),
@@ -266,49 +293,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
- void _showLogoutDialog(BuildContext context) {
-  final auth = Provider.of<AuthenticationProvider1>(context, listen: false);
+  void _showLogoutDialog(BuildContext context) {
+    final auth = Provider.of<AuthenticationProvider1>(context, listen: false);
 
-  showDialog(
-    context: context,
-    builder: (_) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      title: const Text("Logout"),
-      content: const Text("Are you sure you want to log out?"),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Cancel"),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.redAccent,
-            foregroundColor: Colors.white,
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Text("Logout"),
+        content: const Text("Are you sure you want to log out?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
           ),
-          onPressed: () async {
-            Navigator.pop(context); // close the dialog first
-            await auth.logoutFromAccount(); // ✅ sign out properly
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Logged out successfully"),
-                  backgroundColor: Colors.green,
-                ),
-              );
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              Navigator.pop(context); // close the dialog first
+              await auth.logoutFromAccount(); // ✅ sign out properly
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Logged out successfully"),
+                    backgroundColor: Colors.green,
+                  ),
+                );
 
-              // ✅ Navigate back to login screen and remove all previous routes
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen1()),
-                (route) => false,
-              );
-            }
-          },
-          child: const Text("Logout"),
-        ),
-      ],
-    ),
-  );
-}
-
+                // ✅ Navigate back to login screen and remove all previous routes
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen1()),
+                  (route) => false,
+                );
+              }
+            },
+            child: const Text("Logout"),
+          ),
+        ],
+      ),
+    );
+  }
 }
